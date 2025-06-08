@@ -58,8 +58,8 @@ while (result := client.executions.get(execution.id)).status not in ["succeeded"
 
 # Output result
 if result.status == "succeeded":
-    print("✅ Execution Succeeded:")
+    print("Execution Succeeded:")
     print(result.output)
 else:
-    print("❌ Execution Failed:")
+    print("Execution Failed:")
     print(result.error)
