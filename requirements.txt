@@ -1,0 +1,3 @@
+julep
+python-dotenv
+requests

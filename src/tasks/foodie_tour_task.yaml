@@ -1,0 +1,59 @@
+name: Food Tour Planner
+description: Make a food tour plan to find the best restaurants based on local cuisine and weather.
+
+input_schema:
+  type: object
+  properties:
+    locations:
+      type: array
+      items:
+        type: string
+      description: Cities to search for.
+
+tools:
+- name: google places
+  type: integration
+  integration:
+    provider: google places
+    setup:
+      googleplaces_api_key: "API_KEY"
+
+- name: weather
+  type: integration
+  integration:
+    provider: weather
+    setup:
+      openweathermap_api_key: "DEMO_API_KEY"
+
+main:
+# Step 0: Fetch weather data for each location
+- over: $ steps[0].input.locations
+  map:
+    tool: weather
+    arguments:
+      location: $ _
+
+# Step 1: get the local cuisine for that city
+- over: $ steps[0].input.locations
+  map:
+    tool: internet_search
+    arguments:
+      query: $ 'local cuisines are ' + _
+
+# Step 1: Search google places for restaurants serving the best local cuisines in accordance with the sitting plan
+- over: $ steps[0].input.locations
+  map:
+    tool: internet_search
+    arguments:
+      query: $ 'best restaurants in ' + _
+
+# Step 2: Zip locations, local cuisine and restaurants into a list of tuples [(location, local cuisine, restaurants)]
+- evaluate:
+    zipped: |-
+      $ list(
+        zip(
+          steps[0].input.locations,
+          [output['result'] for output in steps[0].output],
+          steps[1].output
+        )
+      )

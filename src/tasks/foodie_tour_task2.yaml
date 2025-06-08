@@ -1,0 +1,83 @@
+name: Food Tour Planner
+description: Make a food tour plan to find the best restaurants based on local cuisine and weather.
+
+input_schema:
+  type: object
+  properties:
+    locations:
+      type: array
+      items:
+        type: string
+      description: List of cities to plan the food tour in.
+
+tools:
+- name: google_places
+  type: integration
+  integration:
+    provider: google places
+    setup:
+      googleplaces_api_key: ${GOOGLE_API_KEY}
+
+- name: weather
+  type: integration
+  integration:
+    provider: weather
+    setup:
+      openweathermap_api_key: ${OPENWEATHER_API_KEY}
+
+main:
+  # Step 0: Get weather for each location
+  - foreach:
+      input: $ steps[0].input.locations
+      as: city
+      do:
+        - tool: weather
+          arguments:
+            location: $ city
+
+  # Step 1: Get local cuisine for each city
+  - foreach:
+      input: $ steps[0].input.locations
+      as: city
+      do:
+        - prompt: |-
+            $ f"""
+            What are the top 3 local cuisines popular in {city}? List only food names.
+            """
+
+  # Step 2: Search restaurants using Google Places
+  - foreach:
+      input: $ zip(steps[0].input.locations, steps[1].output)
+      as: city_and_cuisine
+      do:
+        - tool: google_places
+          arguments:
+            query: $ f"best restaurants for {city_and_cuisine[1]} in {city_and_cuisine[0]}"
+
+  # Step 3: Generate an itinerary
+  - foreach:
+      input: $ zip(steps[0].input.locations, steps[0].output, steps[1].output, steps[2].output)
+      as: city_info
+      do:
+        - prompt:
+            - role: system
+              content: |-
+                $ f"""You are a helpful food tour planner. Create a personalized food tour plan for the city {city_info[0]}. 
+                Consider the current weather "{city_info[1]}", the local cuisines "{city_info[2]}", 
+                and recommend top places to eat from the search results below.
+
+                Output should include:
+                - Morning, afternoon, and evening slots
+                - Indoor/outdoor suggestion based on weather
+                - Restaurant name and recommended dish
+                """
+            - role: user
+              content: |-
+                $ f"""
+                City: {city_info[0]}
+                Weather: {city_info[1]}
+                Cuisine: {city_info[2]}
+                Restaurants: {city_info[3]}
+                """
+        - return:
+            output: $ steps[-1].output

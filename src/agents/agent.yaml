@@ -1,0 +1,3 @@
+name: TestAgent
+about: A FoodTour Expert who recommend best restaurant based on local cuisine and weather.
+model: gpt-4o

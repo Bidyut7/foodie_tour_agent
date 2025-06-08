@@ -1,0 +1,12 @@
+agents:
+- definition: src/agents/agent.yaml
+
+tasks:
+- agent_id: "{agents.id}"
+  definiton: src/tasks/foodie_tour_task.yaml
+
+tools:
+- agent_id: "{agents.id}"
+  definiton: src/tools/weather_tool.yaml
+- agent_id: "{agents.id}"
+  definiton: src/tools/restaurant_search_tool.yaml
