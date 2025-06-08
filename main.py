@@ -8,7 +8,7 @@ load_dotenv()
 
 # Load env vars
 JULEP_API_KEY = os.getenv("JULEP_API_KEY")
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+GOOGLE_PLACES_API_KEY = os.getenv("GOOGLE__PLACES_API_KEY")
 OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY")
 
 client = Client(api_key=JULEP_API_KEY)
@@ -21,13 +21,12 @@ agent = client.agents.create(
 
 print(f"Agent Created: {agent.id}")
 
-# Replace env vars in YAML
-with open("food_tour_task.yaml", "r") as f:
+with open("src/tasks/foodie_tour_task2.yaml", "r") as f:
     yaml_template = f.read()
 
 yaml_filled = (
     yaml_template
-    .replace("${GOOGLE_API_KEY}", GOOGLE_API_KEY)
+    .replace("${GOOGLE_API_KEY}", GOOGLE_PLACES_API_KEY)
     .replace("${OPENWEATHER_API_KEY}", OPENWEATHER_API_KEY)
 )
 
